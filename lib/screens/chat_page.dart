@@ -35,7 +35,7 @@ class _ChatPageState extends State<ChatPage> {
       id: widget.id,
       firstName: widget.name,
     );
-    
+
     // Initialize otherUser with default values to avoid late initialization error
     otherUser = types.User(
       id: 'default',
@@ -43,7 +43,8 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     socket.messages.listen((incomingMessage) {
-      if (incomingMessage is String) {  // Ensure the message is a String
+      if (incomingMessage is String) {
+        // Ensure the message is a String
         try {
           List<String> parts = incomingMessage.split(' from ');
           String jsonString = parts[0];
@@ -52,7 +53,8 @@ class _ChatPageState extends State<ChatPage> {
           String id = data['id'];
           String msg = data['msg'];
           String nick = data['nick'] ?? id;
-          String type = data['type'] ?? 'text'; // Default to text if not specified
+          String type =
+              data['type'] ?? 'text'; // Default to text if not specified
 
           if (id != me.id) {
             setState(() {
@@ -81,14 +83,15 @@ class _ChatPageState extends State<ChatPage> {
   void onMessageReceived(String message, String type) {
     types.Message newMessage;
 
+    // No onMessageReceived()
     if (type == 'image') {
       newMessage = types.ImageMessage(
         author: otherUser,
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         uri: message,
         createdAt: DateTime.now().millisecondsSinceEpoch,
-        name: 'Image',
-        size: 0,
+        name: 'Imagem',
+        size: base64.decode(message.split(',').last).length,
         width: 0,
         height: 0,
       );
@@ -113,7 +116,7 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessageCommon(types.Message message) {
     String msgContent;
     String type;
-    
+
     if (message is types.TextMessage) {
       msgContent = message.text;
       type = 'text';
@@ -206,7 +209,8 @@ class _ChatPageState extends State<ChatPage> {
         author: me,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: randomString(),
-        mimeType: lookupMimeType(result.files.single.path!) ?? 'application/octet-stream',
+        mimeType: lookupMimeType(result.files.single.path!) ??
+            'application/octet-stream',
         name: result.files.single.name,
         size: result.files.single.size,
         uri: result.files.single.path!,
@@ -225,19 +229,19 @@ class _ChatPageState extends State<ChatPage> {
 
     if (result != null) {
       final bytes = await result.readAsBytes();
-      final image = await decodeImageFromList(bytes);
+      final base64Image = base64Encode(bytes);
 
       final message = types.ImageMessage(
         author: me,
         createdAt: DateTime.now().millisecondsSinceEpoch,
-        height: image.height.toDouble(),
+        height: 0, // Não exibiremos preview ainda
         id: randomString(),
         name: result.name,
         size: bytes.length,
-        uri: result.path,
-        width: image.width.toDouble(),
+        uri: 'data:image/jpeg;base64,$base64Image',
+        width: 0,
       );
-      
+
       _sendMessageCommon(message);
     }
   }
